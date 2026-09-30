@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/health.js": {},
+    "api/invoke.js": {}
+  }
+}
