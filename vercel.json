@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/health.js": {},
-    "api/invoke.js": {}
+    "api/health.js": { "maxDuration": 10 },
+    "api/invoke.js": { "maxDuration": 10 }
   }
 }
