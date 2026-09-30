@@ -1,68 +1,11 @@
-function scan(code, language) {
-  const lines = code.split("\n");
-  const findings = [];
+// Finch Direct API (P4) Invocation endpoint.
+// 輸入 schema： { "code": string (必填), "language": string (選填) }
+// 輸出 schema： { "summary": string, "findings": [{severity, line, issue, suggestion}] }
+//
+// P4 沒有任何簽章機制，是三種連接模式裡最簡單的一種。
+// 真正的掃描邏輯在 api/_lib/scan.js，這裡只負責處理 HTTP 請求/回應。
 
-  lines.forEach((line, idx) => {
-    const lineNo = idx + 1;
-    const trimmed = line.trim();
-
-    if (/console\.log\(/.test(line)) {
-      findings.push({
-        severity: "low",
-        line: lineNo,
-        issue: "遺留的 console.log 除錯輸出",
-        suggestion: "上線前移除，或改用正式的 logging 機制",
-      });
-    }
-    if (/\bTODO\b|\bFIXME\b/i.test(line)) {
-      findings.push({
-        severity: "medium",
-        line: lineNo,
-        issue: "未完成的 TODO/FIXME 標記",
-        suggestion: "確認這個待辦是否還需要處理，處理完就移除註解",
-      });
-    }
-    if (/\bvar\s/.test(line)) {
-      findings.push({
-        severity: "low",
-        line: lineNo,
-        issue: "使用了 var 宣告變數",
-        suggestion: "改用 const 或 let，避免變數提升造成的意外行為",
-      });
-    }
-    if (/[^=!<>]==[^=]/.test(line) && !/===|!==/.test(line)) {
-      findings.push({
-        severity: "medium",
-        line: lineNo,
-        issue: "使用了寬鬆相等 == 而非嚴格相等 ===",
-        suggestion: "改用 === / !== 避免型別強制轉換造成的錯誤比對",
-      });
-    }
-    if (trimmed.length > 120) {
-      findings.push({
-        severity: "low",
-        line: lineNo,
-        issue: "單行超過 120 字元，可讀性偏低",
-        suggestion: "考慮拆成多行或抽出變數",
-      });
-    }
-  });
-
-  if (findings.length === 0) {
-    findings.push({
-      severity: "info",
-      line: 0,
-      issue: "未發現明顯問題",
-      suggestion: "程式碼在本次掃描規則下沒有觸發任何警示",
-    });
-  }
-
-  const summary = `掃描了 ${lines.length} 行${language ? ` ${language} ` : ""}程式碼，找到 ${
-    findings.filter((f) => f.severity !== "info").length
-  } 個可改善項目。`;
-
-  return { summary, findings: findings.slice(0, 15) };
-}
+import { scan } from "./_lib/scan.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
